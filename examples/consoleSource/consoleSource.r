@@ -17,8 +17,8 @@ ddg.init(ddg.r.script.path,
 
 # Do some simple variable assignments here
 fun <- function(a,b){
-  ddg.procedure(lookup.ins=TRUE)
-  ddg.return(a+b)
+  ddg.function()
+  ddg.return.value(a+b)
 }
 
 # add stuff

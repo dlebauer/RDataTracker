@@ -52,15 +52,18 @@ _*
 # IGNORE vignette and knitr files
 *.sty
 *.aux
+*.lof
 vignettes/*.out
 vignettes/*.tex
-vignettes/*synctex.gz
+*synctex.gz
 vignettes/*.dvi
 *.toc
 
-# INCLUDE jpg file under vignettes
+# INCLUDE jpg file under vignettes and testDocs
 !vignettes/*/*.jpg
 !vignettes/*/*.png
+!testDocs/*/*.jpg
+!testDocs/*/*.png
 
 # INCLUDE .txt files under checkpoint test
 !examples/checkpointTest/*.txt
@@ -74,7 +77,7 @@ examples/seminars/seminar1/*.csv
 
 # INCLUDE files needed for tests
 !examples/RealTime15MinMET/archive-15min.csv
-!examples/seminars/seminar1/reu.r.data2.csv
+!examples/seminars/seminar1/reu_r_data1.csv
 
 # INCLUDE PDF in /inst/doc
 !inst/doc/*.pdf
@@ -83,3 +86,5 @@ examples/seminars/seminar1/*.csv
 *.out
 !*expected*.out
 
+# IGNORE the Java directory
+Java/

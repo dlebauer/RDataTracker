@@ -3,7 +3,8 @@
     name="TESTS"
     xmlns:if="ant:if"
     xmlns:unless="ant:unless"
-	default="test-all">
+	default="install-and-test"
+  >
 
   <!--############################# Start Setup #############################-->
   <!-- So we can build RDataTracker -->
@@ -193,7 +194,7 @@
       <arg line="--strip-trailing-cr ${local_dir}/ddg-source.txt.local ${local_dir}/source_${ddg_name}.local" />
     </exec>
   </target>
-  <!--############################ End FUNCTIONS ############################-->
+	  <!--############################ End FUNCTIONS ############################-->
 
   <!--########################## Start Basic TESTS ##########################-->
   <target name="basic-test">
@@ -342,7 +343,6 @@
 	      <param name="script-file" value="EvalTest.R"/>
 	      <param name="expected_out" value="examples/EvalTest/expected_evalTest.out"/>
 	      <param name="expected_ddg" value="examples/EvalTest/expected_evalTest_ddg.txt"/>
-	      <param name="fail_out" value="false" />
 	      <param name="source_test" value="false" />
 	    </antcall>
 	  </target>
@@ -354,7 +354,17 @@
 	      <param name="script-file" value="EvalTest-Source.R"/>
 	      <param name="expected_out" value="examples/EvalTest/expected_evalTest-Source.out"/>
 	      <param name="expected_ddg" value="examples/EvalTest/expected_evalTest-Source_ddg.txt"/>
-	      <param name="fail_out" value="false" />
+	      <param name="source_test" value="true" />
+	    </antcall>
+	  </target>
+
+	  <target name="eval2-test" depends="dependencies">
+	    <antcall target="run-test">
+	      <param name="dir" value="examples/EvalTest"/>
+	      <param name="out" value="examples/EvalTest/Eval2Test.out"/>
+	      <param name="script-file" value="Eval2Test.R"/>
+	      <param name="expected_out" value="examples/EvalTest/expected_eval2-test.out"/>
+	      <param name="expected_ddg" value="examples/EvalTest/expected_eval2-test_ddg.txt"/>
 	      <param name="source_test" value="true" />
 	    </antcall>
 	  </target>
@@ -370,7 +380,7 @@
     </antcall>
   </target>
 
-  <target name="console-tests" depends="console-test-1, console-test-2, MismatchedStartFinishBug-test, null-na-test, consoleEdgeCases-test, scope-test, return-test, eval-test, eval-source-test">
+  <target name="console-tests" depends="console-test-1, console-test-2, MismatchedStartFinishBug-test, null-na-test, consoleEdgeCases-test, scope-test, return-test, eval-test, eval-source-test, eval2-test">
     <echo>These automated tests are limited when in console mode. You can always manually check the ouput using diff and the provided expected output files for each script. Do note, however, that all of the tests have also been evaluated using ddg.source, which does in fact capture console commands.</echo>
   </target>
   <!--########################## End Console TESTS ##########################-->
@@ -521,6 +531,10 @@
     </antcall>
   </target> 
 
+  <target name="bug-tests" depends="ddg-changes-behavior-test, ddg-hang-test,scoping-error-test, simple-test" >
+    <echo>Tests which were added to check for specific bug fixes </echo>
+  </target>
+
   <target name="SivanSampling-test">
     <record name="examples/SivanSampling/SivanSampling-test.log" action="start" />
       <antcall target="run-test">
@@ -536,8 +550,8 @@
     <record name="SivanSampling-test.log.txt" action="stop" />
   </target> 
 
-  <target name="bug-tests" depends="ddg-changes-behavior-test, ddg-hang-test,scoping-error-test, simple-test" >
-    <echo>Tests which were added to check for specific bug fixes </echo>
+  <target name="untested-tests" depends="SivanSampling-test" >
+    <echo>Tests which are normally not automatically testsed.</echo>
   </target>
 
   <!--########################## End Bug Tests ##########################-->
@@ -570,23 +584,27 @@
       <echo message="Please run Aaron's test in the console and compare ddg.txt with expected_ddg.txt" />
     <record name="aaron-min-test-test.log.txt" action="stop" />
   </target>
+
+  <target name="long-script-tests" depends="aaron-annotated-test, aaron-min-test" >
+    <echo>Long tests derived from real-world scripts. </echo>
+  </target>
   
   <!--################################# MAIN #################################-->
-  <target name="quick-test" depends="install, normal-tests, checkpoint-tests, console-tests, source-tests, bug-tests">
+  <target name="quick-test" depends="normal-tests, checkpoint-tests, console-tests, source-tests, bug-tests" description="Run quick regressions tests for the currently installed RDataTracker Package.">
     <echo>This batch of tests is quick to execute, but not as extensive.</echo>
   </target>
 
-  <target name="long-test" depends="install, script-tests, aaron-min-test, aaron-annotated-test">
+  <target name="long-test" depends="script-tests, aaron-min-test, aaron-annotated-test" description="Run long regression tests for the currently installed RDataTracker Package.">
     <echo>This batch of tests takes longer, but is a bit more real-world</echo>
   </target>
 
-  <target name="test-all" depends="quick-test, long-test">
+  <target name="test-all" depends="quick-test, long-test" description="Run all regression tests for the currently installed RDataTracker Package.">
       <echo>All tests makes calls to the RDataTracker Library. You might need to restart RStudio to correctly run the scripts with the updated library installed. Output is saved in tests.log.
 
       There is one test which is not run here. The test is SivanSimes dendrochronology master analysis file-test-test. Run it manually, though output is random.</echo>
   </target>
 
-  <target name="install-and-test">
+  <target name="install-and-test" description="Install the RDataTracker Package and perform all normal regression tests.">
     <splash displaytext="Installing and Testing" />
     <record name="tests.log" action="start" />
       <antcall target="test-all" />
@@ -642,7 +660,7 @@
   <!-- Executes utilities/plot.r. Within this file, scriptTimer.r is executed (making the above
     and unnecessary dependence). 
   -->
-  <target name="performance-report" depends="dependencies">
+  <target name="performance-report" depends="dependencies" description="Execute performance scripts on the current version of the library and generate a report.">
     <splash displaytext="Creating Performance Report."/>
     <!-- Replace base.dir with the base directory of the project -->
     <replaceregexp  file="utilities/plot.r"

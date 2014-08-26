@@ -6,6 +6,9 @@
 
 library(RDataTracker)
 #source("/Users/blerner/Documents/Process/DataProvenance/github/RDataTracker/R/RDataTracker.R")
+#source("c:/data/r/rdatatracker/r/rdatatracker.r")
+#setwd("c:/github/rdatatracker/examples/scopetest")
+
 
 # get initial time
 startTime <- Sys.time()
@@ -31,46 +34,52 @@ options(warn=1)
 
 f <- function() {
    a <<- b * 10
-   ddg.procedure(ins=list("b"), outs.data=list("a"))
-   ddg.return(a)
+   # ddg.procedure(ins=list("b"), outs.data=list("a"))
+   ddg.function(outs.data=list("a"))
+   ddg.return.value(a)
 }
 
 g <- function(a) {
     c <- a + 10
     d <- 1000
-    #ddg.procedure(lookup.ins=TRUE, outs.data=list("c", "d"))
-    ddg.procedure(lookup.ins=TRUE)
-    ddg.return(c)
+    # ddg.procedure(lookup.ins=TRUE, outs.data=list("c", "d"))
+    # ddg.procedure(lookup.ins=TRUE)
+    ddg.function()
+    ddg.return.value(c)
 }
 
 h <- function() {
    d <- 333
-   ddg.procedure("h", ins=list("d"))
-   ddg.return(d)
+   # ddg.procedure("h", ins=list("d"))
+   ddg.function()
+   ddg.return.value(d)
 }
 
 i <- function() {
    x <<- 1000
-   ddg.procedure(outs.data=list("x"))
-   ddg.return(j(x))
+   # ddg.procedure(outs.data=list("x"))
+   ddg.function(outs.data=list("x"))
+   ddg.return.value(j(x))
 }
 
 j <- function(xx) {
    ddg.data(xx)
    # Following works.
-   #ddg.procedure(ins=list("x"))
+   # ddg.procedure(ins=list("x"))
  
    # This works, too.
-   #ddg.procedure(ins=list("a"))
+   # ddg.procedure(ins=list("a"))
 
    # This does not work.  It does not find a.  x & a have different scopes
-   ddg.procedure(ins=list("xx", "a"))
+   # ddg.procedure(ins=list("xx", "a"))
+   ddg.function()
    return(3)
 }
 
 k <- function (xx = 0, yy = 1) {
-  ddg.procedure(lookup.ins=TRUE)
-	ddg.return (xx + yy)
+  # ddg.procedure(lookup.ins=TRUE)
+  ddg.function()
+	ddg.return.value (xx + yy)
 }
 
 a <- 1

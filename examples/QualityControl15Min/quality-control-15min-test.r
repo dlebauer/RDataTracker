@@ -25,6 +25,7 @@ options(guiToolkit="tcltk")
 # ddg.library <- "c:/data/r/ddg/lib/ddg-library.r"
 #}
 #source(ddg.library)
+#source("/Users/blerner/Documents/Process/DataProvenance/github/RDataTracker/R/RDataTracker.R")
 library(RDataTracker)
 
 # get initial time
@@ -32,11 +33,17 @@ startTime <- Sys.time()
 invisible(force(startTime))
 
 ## Directories
-testDir <- "[DIR_DEFAULT]/"
-setwd(testDir)
+if (interactive()) {
+  testDir <- getwd()
+  ddgDir <- "ddg"
+} else {
+  testDir <- "[DIR_DEFAULT]"
+  setwd(testDir)
+  ddgDir <- "[DDG-DIR]"
+}
 
-ddg.r.script.path = paste(testDir,"quality-control-15min-test.r",sep="")
-ddg.path = paste(testDir,"[DDG-DIR]",sep="")
+ddg.r.script.path = paste(testDir,"quality-control-15min-test.r",sep="/")
+ddg.path = paste(testDir,ddgDir,sep="/")
 
 ddg.init(ddg.r.script.path,
          ddg.path,
@@ -44,7 +51,7 @@ ddg.init(ddg.r.script.path,
 
 ### Functions
 
-read.data <- function(x) {
+read.data <- function() {
   # get initial values
   data.file <<- "met-15min.csv"
   variable <<- "airt"
@@ -52,23 +59,15 @@ read.data <- function(x) {
   end.date <<- "2012-03-31"
   
   # read data file
-  zz <- read.csv(x)
+  zz <- read.csv(data.file)
   
-  ddg.procedure("read.data")
-  ddg.file(data.file)
-  ddg.data("variable",variable)
-  ddg.data("start.date",start.date)
-  ddg.data("end.date",end.date)
-  ddg.data.in(data.file)
-  ddg.data.in("variable")
-  ddg.data.in("start.date")
-  ddg.data.in("end.date")
+  ddg.function()
   #ddg.data.out("all-data.csv",zz)
   
-  ddg.return(zz)
+  ddg.return.value(zz)
 }
 
-select.data <- function(zz) {  
+select.data <- function(zz,v,sd,ed) {  
   # select data for analysis
   zz$datetime <- as.character(zz$datetime)
   zz$date <- substr(zz$datetime,1,10)
@@ -78,20 +77,17 @@ select.data <- function(zz) {
   zz$time[i] <- "00:00:00"
   zz$dt <- chron(dates=zz$date,times=zz$time,format=c(dates="y-m-d",times="h:m:s"))
   
-  zz2 <- zz[,c("date","time","dt",variable)]
-  names(zz2)[names(zz2)==variable] <- "var"  
+  zz2 <- zz[,c("date","time","dt",v)]
+  names(zz2)[names(zz2)==v] <- "var"  
   
-  zz3 <- subset(zz2,zz2$dt>=start.date & zz2$dt<=end.date)
+  zz3 <- subset(zz2,zz2$dt>=sd & zz2$dt<=ed)
   
   #ddg.procedure("select.data")
-  ddg.procedure(lookup.ins=TRUE)
+  ddg.function()
   #ddg.data.in("all-data.csv")
-  ddg.data.in("variable")
-  ddg.data.in("start.date")
-  ddg.data.in("end.date")
   #ddg.data.out("selected-data.csv",zz3)
   
-  ddg.return(zz3)
+  ddg.return.value(zz3)
 }
 
 apply.test <- function(xx,t,n) {
@@ -132,20 +128,20 @@ apply.test <- function(xx,t,n) {
     }  
   }
   
-  ddg.procedure("apply.test")
-  #ddg.data.in("selected-data.csv")
-  ddg.data.in("selected.data")
-  ddg.data.in("test")
-  ddg.data.in("num")
+  ddg.function()
+  # ddg.data.in("selected-data.csv")
+  # ddg.data.in("selected.data")
+  # ddg.data.in("test")
+  # ddg.data.in("num")
   #ddg.data.out("flagged-data.csv",xx)
   
-  ddg.return(xx)
+  ddg.return.value(xx)
 }
 
 plot.data <- function(xx,t,n,output) {
   # if file, save plot as jpeg
   if (output=="file") {
-    dpfile <- paste(getwd(),"/plot.jpeg",sep="")
+    dpfile <- paste(getwd(),"/graph.jpeg",sep="")
     jpeg(file=dpfile,width=800,height=500,quality=100)
   }
   
@@ -198,18 +194,17 @@ plot.data <- function(xx,t,n,output) {
   
   # if gui, save to PDF file in DDG
   if (output=="gui") {
-    ddg.procedure("plot.data")
-    #ddg.data.in("flagged-data.csv")
-	ddg.data.in(flagged.data)
+    ddg.function(outs.graphic=list("graph"))
+    # ddg.data.in("flagged-data.csv")
+	  # ddg.data.in(flagged.data)
   }
   
   # if file, copy jpeg file to DDG directory
   if (output=="file") {
     dev.off()
-    ddg.procedure("plot.data")
-    #ddg.data.in("flagged-data.csv")
-	ddg.data.in(flagged.data)
-    ddg.file.out("plot.jpeg")
+    ddg.function(outs.file=list("graph.jpeg"))
+    # ddg.data.in("flagged-data.csv")
+	  # ddg.data.in(flagged.data)
   }
 }
 
@@ -217,10 +212,9 @@ save.data <- function(fn,xx) {
   file.out <- paste(getwd(),"/",fn,sep="")
   write.csv(xx,file.out,row.names=FALSE)
   
-  ddg.procedure("save.data")
-  #ddg.data.in("flagged-data.csv")
-  ddg.data.in("flagged.data")
-  ddg.file.out(fn)
+  ddg.function(outs.file=list(fn))
+  # ddg.data.in("flagged-data.csv")
+  # ddg.data.in("flagged.data")
 }
 
 ### Main Program
@@ -228,11 +222,10 @@ save.data <- function(fn,xx) {
 ddg.start("main")
 
 ddg.start("get.data")
+#all.data <- read.data()
+ddg.eval("all.data <- read.data()")
 
-all.data <- read.data(data.file)
-ddg.data(all.data)
-selected.data <- select.data(all.data)
-ddg.data(selected.data)
+selected.data <- select.data(all.data,variable,start.date,end.date)
 
 ddg.finish("get.data")
 
@@ -240,14 +233,12 @@ ddg.start("analyze.data")
 
 inputs <- c("min","max","min", "slope")
 num <- 10
-ddg.data("num")
 
 for (test in inputs){
   ddg.start("apply.test")
-  ddg.data("test")
-  flagged.data <- apply.test(selected.data, test,num)
-  ddg.data(flagged.data)
-  plot.data(flagged.data, test,num,"gui")
+  ddg.data(test)
+  flagged.data <- apply.test(selected.data,test,num)
+  plot.data(flagged.data,test,num,"gui")
   ddg.finish("apply.test")
 }
 

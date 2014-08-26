@@ -27,8 +27,8 @@ ddg.init(ddg.r.script.path,
 ### Functions
 
 f <- function(x) {
-  ddg.procedure(lookup.ins=TRUE)
-  ddg.return(10)
+  ddg.function()
+  ddg.return.value(10)
 }
 
 g <- function() {

@@ -2,8 +2,8 @@
 # execute locally using ddg.source. It also uses ddg.return and ddg.procedure.
 x <- 5
 f <- function(w){
-  ddg.procedure(lookup.ins=TRUE)
-  ddg.return(w+1)
+  ddg.function()
+  ddg.return.value(w+1)
 }
 
 # just random testing

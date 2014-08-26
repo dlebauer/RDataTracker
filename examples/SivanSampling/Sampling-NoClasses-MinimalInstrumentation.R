@@ -6,16 +6,25 @@
 # Load the library to create the provenance graphs.  All the function calls below that begin "ddg."
 # are calls to functions in this library.
 
-start.time <- Sys.time()
-force(start.time)
-
 library(RDataTracker)
-ddg.debug.off()
+
+# get initial time
+startTime <- Sys.time()
+invisible(force(startTime))
+
+if (interactive()) {
+  testDir <- getwd()
+  ddgDir <- "ddg-min"
+} else {
+  testDir <- "[DIR_DEFAULT]"
+  ddgDir <- "[DDG-DIR]"
+  setwd(testDir)
+}
 
 # Initialize the provenance graph
-ddg.init("/Users/blerner/Documents/Process/DataProvenance/workspace/ddg-r/examples/SivanSampling/Sampling-NoClasses-MinimalInstrumentation.r",
-		"/Users/blerner/Documents/Process/DataProvenance/workspace/ddg-r/examples/SivanSampling/ddg",
-		enable.console = TRUE)
+ddg.init(paste(testDir, "Sampling-NoClasses-MinimalInstrumentation.r", sep="/"),
+		ddgDir,
+    max.snapshot.size=0)
 
 ######################################################################################################
 
@@ -302,7 +311,10 @@ raffleSamples <- function (samplesArr, speciesDistributionAreas, totalNumOfSampl
 			areaCode <- samplesArr[i,"areaCode"]
 			sampleRaffle <- raffleIndividualsPerSample(i, numInd, speciesDistributionAreas[[areaCode]], totalNumOfSpecies)
 			numEntries <- nrow(sampleRaffle)
-			
+      print(paste("smplx =", smplx))
+      print(paste("numEntries =", numEntries))
+      print(paste("index =", index))
+      
 			smpCompositions$sampleId[index:(index+numEntries-1)] <- smplx
 			smpCompositions$speciesCode[index:(index+numEntries-1)] <- sampleRaffle$speciesCode
 			smpCompositions$speciesNumber[index:(index+numEntries-1)] <- sampleRaffle$speciesNumber
@@ -367,7 +379,9 @@ samplingResult <- raffleSamples(samplesArr, speciesDistribution, totalNumOfSampl
 writeToFile("genSmpls1", "virtual sampling1 (Uniform distribution)", totalNumOfSpecies, totalNumOfSample, samplingResult)
 
 ddg.save()
-finish.time <- Sys.time()
-print(paste("Elapsed time =", (finish.time - start.time)))
+
+# Calculate total time of execution
+endTime <- Sys.time()
+cat("Execution Time =", difftime(endTime, startTime,units="secs"))
 
 
